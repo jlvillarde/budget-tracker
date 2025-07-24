@@ -17,9 +17,13 @@ class Settings:
     # Security settings
     SECRET_KEY: str = os.getenv(
         "SECRET_KEY", "your-secret-key-change-in-production")
-
+    SESSION_SECRET_KEY: str = os.getenv(
+        'SESSION_SECRET_KEY', "session_secret_key")
     # Database url
     DATABASE_URL: str | None = os.getenv("DATABASE_URL", None)
+
+    # Session secret token
+    SESSION_SEECRET_KEY = os.getenv("SESSION_SECRET_KEY", 'session_secret')
 
     # Logging settings
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
@@ -27,10 +31,7 @@ class Settings:
 
     # CORS settings
     ALLOWED_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:8000",
+        "http://localhost:5173",
     ]
 
     # File paths

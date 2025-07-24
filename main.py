@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.logger import logger
@@ -48,6 +49,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY
+)
+
 # Register exception handlers
 @app.exception_handler(RequestValidationError)
 async def handle_validation_exception(request: Request, exc: RequestValidationError):
@@ -59,8 +65,10 @@ async def handle_global_exception(request: Request, exc: Exception):
 
 
 # Include API routers
-from app.api.users import router as users_router
-app.include_router(users_router, prefix="/api")
+from app.api import all_routes
+import starlette.middleware.sessions
+for route in all_routes:
+    app.include_router(route, prefix='/api')
 
 
 # Serve static assets (JS, CSS, images) from /static path
@@ -72,8 +80,6 @@ if os.path.exists(static_dir):
     logger.info(f"Static files mounted from: {static_dir}")
 
 # Catch-all route for React client-side routing
-
-
 @app.get("/{full_path:path}")
 def serve_react_app(request: Request, full_path: str):
     # Don't serve API routes through React

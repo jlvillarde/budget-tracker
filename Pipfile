@@ -10,6 +10,7 @@ loguru = "*"
 email-validator = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
 asyncpg = "*"
+itsdangerous = "*"
 
 [dev-packages]
 
