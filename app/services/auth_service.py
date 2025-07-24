@@ -26,11 +26,6 @@ class AuthService:
         )
         user = result.scalar_one_or_none()
 
-        print(email)
-        print(user.email)
-        print(verify_password(password, user.password))
-        print(password)
-
         if not user:
             raise HTTPException(status_code=400, detail='Invalid password or email')
 
@@ -43,7 +38,22 @@ class AuthService:
             "email": user.email
         }
 
+    
         return JSONResponse(
-            content={"message": "Login successful"},
+            content={
+                "id": user.id,
+                "email": user.email,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "is_active": user.is_active,
+                "updated_at": user.updated_at
+            },
+            status_code=200
+        )
+
+    async def logout(self, request: Request):
+        request.session.clear()
+        return JSONResponse(
+            content={"message": "Logout successful"},
             status_code=200
         )

@@ -18,3 +18,10 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ):
     return await auth_service.login(login_dto.email, login_dto.password, db, request)
+
+@router.post('/logout')
+async def logout(
+    auth_service: AuthServiceDep,
+    request: Request,
+):
+    return await auth_service.logout(request)

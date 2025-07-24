@@ -1,12 +1,13 @@
 import os
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
+from starlette.responses import JSONResponse
 
 from app.core.logger import logger
 from app.core.exceptions_handler import (
@@ -49,11 +50,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SESSION_SECRET_KEY
-)
-
 # Register exception handlers
 @app.exception_handler(RequestValidationError)
 async def handle_validation_exception(request: Request, exc: RequestValidationError):
@@ -63,10 +59,15 @@ async def handle_validation_exception(request: Request, exc: RequestValidationEr
 async def handle_global_exception(request: Request, exc: Exception):
     return await global_exception_handler(request, exc)
 
+# IMPORTANT: SessionMiddleware must be added AFTER the auth_middleware
+# because middleware is executed in reverse order of registration
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY # Consider moving this to settings
+)
 
 # Include API routers
 from app.api import all_routes
-import starlette.middleware.sessions
 for route in all_routes:
     app.include_router(route, prefix='/api')
 
