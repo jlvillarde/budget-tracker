@@ -7,7 +7,7 @@ from app.dependencies.auth import get_current_user
 router = APIRouter(
     prefix="/expenses",
     tags=["expenses"],
-    dependencies=[Depends(get_current_user)]  # 👈 This applies to all routes in this router!
+    dependencies=[Depends(get_current_user)]
 )
 expense_service = ExpenseService()
 

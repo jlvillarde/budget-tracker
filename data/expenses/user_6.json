@@ -1,16 +1,29 @@
-[
-  {
-    "id": 1,
-    "amount": 4500.0,
-    "description": "house repair",
-    "date": "2025-07-24",
-    "category": "Bills & Utilities"
-  },
-  {
-    "id": 2,
-    "amount": 300.0,
-    "description": "dinner",
-    "date": "2025-07-24",
-    "category": "Food & Dining"
-  }
-]
+{
+  "expenses": [
+    {
+      "id": 1,
+      "amount": 7800.0,
+      "description": "house repair",
+      "date": "2025-07-25",
+      "category": "Bills & Utilities"
+    },
+    {
+      "id": 2,
+      "amount": 2000.0,
+      "description": "gas",
+      "date": "2025-07-25",
+      "category": "Transportation"
+    }
+  ],
+  "categories": [
+    "Food & Dining",
+    "Transportation",
+    "Shopping",
+    "Entertainment",
+    "Bills & Utilities",
+    "Healthcare",
+    "Travel",
+    "Education",
+    "Personal Care"
+  ]
+}

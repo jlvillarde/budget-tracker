@@ -4,6 +4,8 @@ import datetime
 from typing import List, Optional
 from fastapi import HTTPException
 from app.dto.expense_dto import ExpenseDTO
+from data.categories import default_categories
+
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), '../../data/expenses')
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -18,45 +20,59 @@ class DateTimeEncoder(json.JSONEncoder):
         return super().default(obj)
 
 class ExpenseService:
+
+    def initialize_user_file_if_missing(self, user_id: int):
+        file_path = self._get_user_file(user_id)
+        if not os.path.exists(file_path):
+            initial_data = {
+                "expenses": [],
+                "categories": default_categories
+            }
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(initial_data, f, ensure_ascii=False, indent=2, cls=DateTimeEncoder)
+
+
     def _get_user_file(self, user_id: int) -> str:
         return os.path.join(DATA_DIR, f"user_{user_id}.json")
 
     def _read_expenses(self, user_id: int) -> List[dict]:
+        self.initialize_user_file_if_missing(user_id)  # Ensures the file exists
         file_path = self._get_user_file(user_id)
-        if not os.path.exists(file_path):
-            return []
         with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+        return data.get("expenses", [])
 
     def _write_expenses(self, user_id: int, expenses: List[dict]):
         file_path = self._get_user_file(user_id)
+        
+        # Ensure file exists
+        self.initialize_user_file_if_missing(user_id)
+
+        # Load existing content
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        # Update only expenses
+        data["expenses"] = expenses
+
+        # Save back
         with open(file_path, "w", encoding="utf-8") as f:
-            # Use DateTimeEncoder as fallback
-            json.dump(expenses, f, ensure_ascii=False, indent=2, cls=DateTimeEncoder)
+            json.dump(data, f, ensure_ascii=False, indent=2, cls=DateTimeEncoder)
 
     def add_expense(self, user_id: int, expense: ExpenseDTO) -> ExpenseDTO:
         expenses = self._read_expenses(user_id)
         expense_id = (max([e["id"] for e in expenses], default=0) + 1) if expenses else 1
         expense.id = expense_id
         
-        # DEBUG: Print what we're trying to serialize
-        print(f"DEBUG: Expense object: {expense}")
-        print(f"DEBUG: Expense type: {type(expense)}")
-        print(f"DEBUG: Expense.date: {expense.date}")
-        print(f"DEBUG: Expense.date type: {type(expense.date)}")
         
         # Convert to dict using Pydantic's method
         try:
             # Try Pydantic v2 first
             expense_dict = expense.model_dump()
-            print(f"DEBUG: model_dump() result: {expense_dict}")
         except AttributeError:
             # Fallback to Pydantic v1
             expense_dict = expense.dict()
-            print(f"DEBUG: dict() result: {expense_dict}")
-        
-        print(f"DEBUG: expense_dict['date'] type: {type(expense_dict['date'])}")
-        
+                
         expenses.append(expense_dict)
         self._write_expenses(user_id, expenses)
         return expense
@@ -98,25 +114,15 @@ if __name__ == "__main__":
         category="Test"
     )
     
-    print(f"ExpenseDTO: {test_expense}")
-    print(f"Date field: {test_expense.date} (type: {type(test_expense.date)})")
-    
+ 
     # Test serialization
     try:
         serialized = test_expense.model_dump()
-        print(f"model_dump(): {serialized}")
-        print(f"Date in dict: {serialized['date']} (type: {type(serialized['date'])})")
     except AttributeError:
         serialized = test_expense.dict()
-        print(f"dict(): {serialized}")
-        print(f"Date in dict: {serialized['date']} (type: {type(serialized['date'])})")
-    
+       
     # Test JSON serialization
     try:
         json_str = json.dumps(serialized)
-        print(f"JSON serialization successful: {json_str}")
     except TypeError as e:
-        print(f"JSON serialization failed: {e}")
-        # Try with custom encoder
         json_str = json.dumps(serialized, cls=DateTimeEncoder)
-        print(f"JSON with custom encoder: {json_str}")
