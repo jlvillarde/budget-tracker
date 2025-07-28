@@ -22,14 +22,6 @@ async def user_signup(
     return await user_service.create_user(user, db, request)
 
 
-# @router.get("/user/{user_id}", response_model=dict)
-# async def get_user_by_id(
-#     user_id: int,
-#     user_service: UserServiceDep,
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     return await user_service.get_user_by_id(user_id, db)
-
 @router.get("/user/me")
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     user_session = request.session.get("user")
