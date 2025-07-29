@@ -37,6 +37,8 @@ class ExpenseService:
         expense_id = (max([e["id"] for e in expenses], default=0) + 1) if expenses else 1
         expense.id = expense_id
         
+        
+
         # Convert to dict using Pydantic's method
         try:
             # Try Pydantic v2 first
