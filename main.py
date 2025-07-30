@@ -53,7 +53,7 @@ app.add_middleware(
 # Register exception handlers
 @app.exception_handler(RequestValidationError)
 async def handle_validation_exception(request: Request, exc: RequestValidationError):
-    return await validation_exception_handler(request, exc)
+    return validation_exception_handler(request, exc)
 
 @app.exception_handler(Exception)
 async def handle_global_exception(request: Request, exc: Exception):
