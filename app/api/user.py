@@ -24,6 +24,9 @@ async def user_signup(
 
 @router.get("/user/me")
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
+    if not request.session:
+        return
+
     user_session = request.session.get("user")
     if not user_session or "id" not in user_session:
         raise HTTPException(status_code=401, detail="Not authenticated")
