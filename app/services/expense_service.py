@@ -4,6 +4,7 @@ from typing import List
 from fastapi import HTTPException
 from app.dto.expense_dto import ExpenseDTO
 from app.utils.file_manager import initialize_user_expenses_file
+from app.utils.expense_limit_checker import ExpenseLimitChecker
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -36,8 +37,21 @@ class ExpenseService:
         expenses = self._read_expenses(user_id)
         expense_id = (max([e["id"] for e in expenses], default=0) + 1) if expenses else 1
         expense.id = expense_id
-        
-        
+
+        # Calculate totals for today, week, and month
+        today = datetime.date.today()
+        week_start = today - datetime.timedelta(days=today.weekday())
+        month_start = today.replace(day=1)
+        total_today = sum(e["amount"] for e in expenses if "date" in e and datetime.date.fromisoformat(e["date"]) == today)
+        total_week = sum(e["amount"] for e in expenses if "date" in e and week_start <= datetime.date.fromisoformat(e["date"]) <= today)
+        total_month = sum(e["amount"] for e in expenses if "date" in e and month_start <= datetime.date.fromisoformat(e["date"]) <= today)
+        # Add the new expense amount to the totals
+        total_today += expense.amount
+        total_week += expense.amount
+        total_month += expense.amount
+        # Check limits and notify if needed
+        checker = ExpenseLimitChecker(user_id)
+        checker.check_and_notify(total_today, total_week, total_month)
 
         # Convert to dict using Pydantic's method
         try:
@@ -46,7 +60,6 @@ class ExpenseService:
         except AttributeError:
             # Fallback to Pydantic v1
             expense_dict = expense.dict()
-                
         expenses.append(expense_dict)
         self._write_expenses(user_id, expenses)
         return expense
