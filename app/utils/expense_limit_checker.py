@@ -34,7 +34,7 @@ class ExpenseLimitChecker:
 
     def check_and_notify(self, total_today: float, total_week: float, total_month: float):
         limits = self.settings.get('budgetLimits', {})
-        exceeded = False
+        exceeded_details = []
         # Load notifications for duplicate check
         try:
             with self.notifications_file.open('r', encoding='utf-8') as f:
@@ -47,34 +47,34 @@ class ExpenseLimitChecker:
         # Check daily limit
         daily_limit = limits.get('daily', 0)
         if daily_limit and daily_limit > 0 and total_today > daily_limit:
-            # Only notify if not already notified for today
             if not any(n['title'] == 'Daily Limit' and n.get('date') == today_str for n in notifications):
-                self._add_notification(
-                    f"You have exceeded your daily expense limit of {daily_limit}.",
-                    title="Daily Limit",
-                    date_str=today_str
-                )
-            exceeded = True
+                detail = f"You have exceeded your daily expense limit of {daily_limit}."
+                self._add_notification(detail, "Daily Limit", today_str)
+                exceeded_details.append({
+                    "title": "Daily Limit",
+                    "detail": detail,
+                    "date": today_str
+                })
         # Check weekly limit
         weekly_limit = limits.get('weekly', 0)
         if weekly_limit and weekly_limit > 0 and total_week > weekly_limit:
-            # Only notify if not already notified for this week
             if not any(n['title'] == 'Weekly Limit' and n.get('date') == week_str for n in notifications):
-                self._add_notification(
-                    f"You have exceeded your weekly expense limit of {weekly_limit}.",
-                    title="Weekly Limit",
-                    date_str=week_str
-                )
-            exceeded = True
+                detail = f"You have exceeded your weekly expense limit of {weekly_limit}."
+                self._add_notification(detail, "Weekly Limit", week_str)
+                exceeded_details.append({
+                    "title": "Weekly Limit",
+                    "detail": detail,
+                    "date": week_str
+                })
         # Check monthly limit
         monthly_limit = limits.get('monthly', 0)
         if monthly_limit and monthly_limit > 0 and total_month > monthly_limit:
-            # Only notify if not already notified for this month
             if not any(n['title'] == 'Monthly Limit' and n.get('date') == month_str for n in notifications):
-                self._add_notification(
-                    f"You have exceeded your monthly expense limit of {monthly_limit}.",
-                    title="Monthly Limit",
-                    date_str=month_str
-                )
-            exceeded = True
-        return exceeded
+                detail = f"You have exceeded your monthly expense limit of {monthly_limit}."
+                self._add_notification(detail, "Monthly Limit", month_str)
+                exceeded_details.append({
+                    "title": "Monthly Limit",
+                    "detail": detail,
+                    "date": month_str
+                })
+        return exceeded_details

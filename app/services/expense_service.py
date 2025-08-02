@@ -2,6 +2,7 @@ import json
 import datetime
 from typing import List
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from app.dto.expense_dto import ExpenseDTO
 from app.utils.file_manager import initialize_user_expenses_file
 from app.utils.expense_limit_checker import ExpenseLimitChecker
@@ -32,7 +33,7 @@ class ExpenseService:
         with file_path.open("w", encoding="utf-8") as f:
             json.dump(expenses, f, ensure_ascii=False, indent=2, cls=DateTimeEncoder)
 
-    def add_expense(self, user_id: int, expense: ExpenseDTO) -> ExpenseDTO:
+    def add_expense(self, user_id: int, expense: ExpenseDTO):
         """Add a new expense for the user."""
         expenses = self._read_expenses(user_id)
         expense_id = (max([e["id"] for e in expenses], default=0) + 1) if expenses else 1
@@ -51,17 +52,31 @@ class ExpenseService:
         total_month += expense.amount
         # Check limits and notify if needed
         checker = ExpenseLimitChecker(user_id)
-        checker.check_and_notify(total_today, total_week, total_month)
+        exceeded = checker.check_and_notify(total_today, total_week, total_month)
 
         # Convert to dict using Pydantic's method
         try:
-            # Try Pydantic v2 first
             expense_dict = expense.model_dump()
         except AttributeError:
-            # Fallback to Pydantic v1
             expense_dict = expense.dict()
+
+        # Convert date fields to ISO string if needed
+        if "date" in expense_dict and isinstance(expense_dict["date"], (datetime.date, datetime.datetime)):
+            expense_dict["date"] = expense_dict["date"].isoformat()
+
         expenses.append(expense_dict)
         self._write_expenses(user_id, expenses)
+
+        # Return JSON with info if limit exceeded
+        if exceeded:
+            return JSONResponse(
+                status_code=201,
+                content={
+                    "expense": expense_dict,
+                    "limit_exceeded": True,
+                    "details": exceeded  # This is a list of dicts with title, detail, date
+                }
+            )
         return expense
 
     def list_expenses(self, user_id: int) -> List[ExpenseDTO]:
@@ -83,7 +98,7 @@ class ExpenseService:
                 self._write_expenses(user_id, expenses)
                 return expense
         raise HTTPException(status_code=404, detail="Expense not found")
-
+    
     def delete_expense(self, user_id: int, expense_id: int):
         """Delete an expense for the user."""
         expenses = self._read_expenses(user_id)
