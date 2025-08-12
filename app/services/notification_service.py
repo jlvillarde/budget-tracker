@@ -2,40 +2,33 @@ import json
 from typing import List, Optional
 from app.utils.file_manager import initialize_user_notifcations_file
 from datetime import datetime
+from app.services.storage.storage_factory import storage_factory
 
 class NotificationService:
-    @staticmethod
-    def get_notifications(user_id: int) -> List[dict]:
-        notifications_file = initialize_user_notifcations_file(user_id)
-        with notifications_file.open('r', encoding='utf-8') as f:
-            try:
-                data = json.load(f)
-                return data
-            except json.JSONDecodeError:
-                return []
+    def __init__(self):
+        self.storage = storage_factory()
 
-    @staticmethod
-    def mark_as_read(user_id: int, notification_index: int) -> Optional[dict]:
-        notifications_file = initialize_user_notifcations_file(user_id)
-        notifications = NotificationService.get_notifications(user_id)
-        if 0 <= notification_index < len(notifications):
-            notifications[notification_index]['is_read'] = True
-            notifications[notification_index]['read_at'] = datetime.utcnow().isoformat() + 'Z'
-            with notifications_file.open('w', encoding='utf-8') as f:
-                json.dump(notifications, f, indent=2)
-            return notifications[notification_index]
-        return None
+    def _read_notifications(self, user_id: int) -> list:
+        """Read notifications for a user from the configured storage."""
+        notifications = storage_factory().load_file(user_id, 'notifications')
+        return notifications if isinstance(notifications, list) else [notifications]
+    
+    def _write_notifications(self, user_id: int, data: list):
+        """Save notification into notifications file"""
+        return self.storage.save_file(user_id, 'notifications', data)
 
-    @staticmethod
-    def mark_all_as_read(user_id: int) -> int:
-        notifications_file = initialize_user_notifcations_file(user_id)
-        notifications = NotificationService.get_notifications(user_id)
+    def get_notifications(self, user_id: int) -> list:
+        notifications = self._read_notifications(user_id)
+        return notifications
+    
+    def mark_all_as_read(self, user_id: int) -> int:
+        notifications = self._read_notifications(user_id)
         count = 0
         for n in notifications:
             if not n.get('is_read', False):
                 n['is_read'] = True
                 n['read_at'] = datetime.utcnow().isoformat() + 'Z'
                 count += 1
-        with notifications_file.open('w', encoding='utf-8') as f:
-            json.dump(notifications, f, indent=2)
+
+        self.storage.save_file(user_id, 'notifications', notifications)
         return count

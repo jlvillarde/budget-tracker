@@ -1,25 +1,29 @@
 import json
 from datetime import datetime
 from app.utils.file_manager import initialize_user_settings_file, initialize_user_notifcations_file
+from app.services.storage.storage_factory import storage_factory
 
 class ExpenseLimitChecker:
     def __init__(self, user_id: int):
+        self.storage = storage_factory()
         self.user_id = user_id
         self.settings_file = initialize_user_settings_file(user_id)
         self.notifications_file = initialize_user_notifcations_file(user_id)
         self.settings = self._load_settings()
 
     def _load_settings(self):
-        with self.settings_file.open('r', encoding='utf-8') as f:
-            return json.load(f)
+        return self.storage.load_file(self.user_id, 'settings')
+       
 
     def _add_notification(self, detail: str, title: str, date_str: str):
         # Load or create notifications file
         try:
-            with self.notifications_file.open('r', encoding='utf-8') as f:
-                notifications = json.load(f)
+
+            notifications = self.storage.load_file(self.user_id, 'notifications')
+
         except (FileNotFoundError, json.JSONDecodeError):
             notifications = []
+
         notif_id = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{len(notifications)+1}"
         notification = {
             'id': notif_id,
@@ -29,11 +33,11 @@ class ExpenseLimitChecker:
             'date': date_str
         }
         notifications.append(notification)
-        with self.notifications_file.open('w', encoding='utf-8') as f:
-            json.dump(notifications, f, indent=2)
+
+        self.storage.save_file(self.user_id, 'notifications', notifications)
 
     def check_and_notify(self, total_today: float, total_week: float, total_month: float):
-        limits = self.settings.get('budgetLimits', {})
+        limits: dict = self.settings[0]
         exceeded_details = []
         # Load notifications for duplicate check
         try:

@@ -10,6 +10,9 @@ class Settings:
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
+    # Environment
+    APP_ENV  = os.getenv("APP_ENV", "development").lower()
+
     # Server settings
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
@@ -19,11 +22,14 @@ class Settings:
         "SECRET_KEY", "your-secret-key-change-in-production")
     SESSION_SECRET_KEY: str = os.getenv(
         'SESSION_SECRET_KEY', "session_secret_key")
+    
     # Database url
     DATABASE_URL: str | None = os.getenv("DATABASE_URL", None)
 
-    # Session secret token
-    SESSION_SEECRET_KEY = os.getenv("SESSION_SECRET_KEY", 'session_secret')
+    # Supabase Storage settings
+    SUPABASE_URL: str = str(os.getenv("SUPABASE_URL", None))
+    SUPABASE_KEY: str = str(os.getenv("SUPABASE_KEY", None))
+    SUPABASE_BUCKET_NAME: str = str(os.getenv("SUPABASE_BUCKET_NAME", "user-files"))    
 
     # Logging settings
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

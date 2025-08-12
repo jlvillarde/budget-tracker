@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Request, Depends
-from app.dto.settings_dto import SettingsDTO
+from app.dto.settings_dto import BudgetLimitsDTO, SettingsDTO
 from app.services.settings_service import SettingsService
 from app.dependencies.auth import get_current_user
 
@@ -11,7 +11,7 @@ router = APIRouter(
 )
 SettingsServiceDep = Annotated[SettingsService, Depends(SettingsService)]
 
-@router.get("", response_model=SettingsDTO)
+@router.get("")
 def get_settings(
     request: Request,
     settings_service: SettingsServiceDep
@@ -19,9 +19,9 @@ def get_settings(
     user_id = request.session["user"]["id"]
     return settings_service.get_user_settings(user_id)
 
-@router.put("", response_model=SettingsDTO)
+@router.put("")
 def update_settings(
-    dto: SettingsDTO,
+    dto: BudgetLimitsDTO,
     request: Request,
     settings_service: SettingsServiceDep
 ):

@@ -11,6 +11,7 @@ email-validator = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
 asyncpg = "*"
 itsdangerous = "*"
+supabase = "*"
 
 [dev-packages]
 
@@ -18,6 +19,6 @@ itsdangerous = "*"
 python_version = "3.12"
 
 [scripts]
-dev = "uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+dev = "uvicorn main:app --reload --host 127.0.0.1 --port 8000"
 prod = "uvicorn main:app --host 0.0.0.0 --port 8000"
 build-react = "python build_and_copy_react.py"

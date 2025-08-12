@@ -21,18 +21,6 @@ def get_notifications(
     user_id = int(request.session["user"]["id"])
     return notification_service.get_notifications(user_id)
 
-@router.post("/mark-as-read/{index}")
-def mark_notification_as_read(
-    index: int,
-    notification_service: NotificationServiceDep,
-    request: Request
-):
-    """Mark a specific notification as read by index for the current user."""
-    user_id = request.session["user"]["id"]
-    notif = notification_service.mark_as_read(user_id, index)
-    if notif is None:
-        raise HTTPException(status_code=404, detail="Notification not found")
-    return notif
 
 @router.post("/mark-all-as-read")
 def mark_all_notifications_as_read(
