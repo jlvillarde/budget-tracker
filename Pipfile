@@ -12,6 +12,7 @@ sqlalchemy = {extras = ["asyncio"], version = "*"}
 asyncpg = "*"
 itsdangerous = "*"
 supabase = "*"
+python-multipart = "*"
 
 [dev-packages]
 

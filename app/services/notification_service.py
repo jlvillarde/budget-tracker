@@ -10,12 +10,12 @@ class NotificationService:
 
     def _read_notifications(self, user_id: int) -> list:
         """Read notifications for a user from the configured storage."""
-        notifications = storage_factory().load_file(user_id, 'notifications')
+        notifications = storage_factory().load_file(user_id, 'notifications.json')
         return notifications if isinstance(notifications, list) else [notifications]
     
     def _write_notifications(self, user_id: int, data: list):
         """Save notification into notifications file"""
-        return self.storage.save_file(user_id, 'notifications', data)
+        return self.storage.save_file(user_id, 'notifications.json', data)
 
     def get_notifications(self, user_id: int) -> list:
         notifications = self._read_notifications(user_id)

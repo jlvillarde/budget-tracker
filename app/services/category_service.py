@@ -10,12 +10,12 @@ class CategoryService:
 
     def _read_categories(self, user_id: int) -> List[str]:
         """Read expenses for a user from the configured storage."""
-        categories = self.storage.load_file(user_id, 'catrgories')
+        categories = self.storage.load_file(user_id, 'catrgories.json')
         return categories if isinstance(categories, list) else [categories]
 
     def _write_categories(self, user_id: int, categories: list):
         """Save category into categories file"""
-        return self.storage.save_file(user_id, 'categories', categories)
+        return self.storage.save_file(user_id, 'categories.json', categories)
 
 
     def list_categories(self, user_id: int) -> List[str]:

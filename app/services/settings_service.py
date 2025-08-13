@@ -9,12 +9,12 @@ class SettingsService:
 
     def _read_settings(self, user_id: int) -> list:
         """Read settings for a user from the configured storage."""
-        notifications = storage_factory().load_file(user_id, 'settings')
-        return notifications if isinstance(notifications, list) else [notifications]
+        settings = storage_factory().load_file(user_id, 'settings.json')
+        return settings if isinstance(settings, list) else [settings]
     
     def _write_settings(self, user_id: int, data: list):
         """Save setting into settings file"""
-        return self.storage.save_file(user_id, 'settings', data)
+        return self.storage.save_file(user_id, 'settings.json', data)
 
 
     def get_user_settings(self, user_id: int) -> list:
@@ -22,5 +22,5 @@ class SettingsService:
         return settings[0]
     
     def update_user_settings(self, user_id: int, updated_settings: dict) -> dict:
-        self.storage.save_file(user_id, 'settings', [updated_settings])
+        self.storage.save_file(user_id, 'settings.json', [updated_settings])
         return updated_settings
